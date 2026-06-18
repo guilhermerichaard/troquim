@@ -2,5 +2,6 @@ import TroquimAdmin from './TroquimAdmin.jsx'
 
 export default function App() {
   const path = window.location.pathname
-  return <TroquimAdmin initialScreen={path.includes('admin') ? 'admin' : 'cliente'} />
+  const initialScreen = path.includes('admin') ? 'admin' : path.includes('agendar') ? 'agendar' : 'cliente'
+  return <TroquimAdmin initialScreen={initialScreen} />
 }

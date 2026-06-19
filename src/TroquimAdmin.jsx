@@ -105,6 +105,9 @@ export default function TroquimAdmin({ initialScreen = 'cliente' }) {
   const [verification, setVerification] = useState({ sent: false, code: '', input: '', ok: false })
   const [botMessages, setBotMessages] = useState([])
   const [primaryRequest, setPrimaryRequest] = useState(null)
+  const nameInputRef = useRef(null)
+  const phoneInputRef = useRef(null)
+  const codeInputRef = useRef(null)
   const [draft, setDraft] = useState({ name: '', desc: '', price: '', duration: '', promo: false, promoPrice: '' })
 
   const days = useMemo(() => makeMonthDays(), [])
@@ -151,17 +154,27 @@ export default function TroquimAdmin({ initialScreen = 'cliente' }) {
     setDraft({ name: '', desc: '', price: '', duration: '', promo: false, promoPrice: '' })
   }
   function sendCode() {
-    if (!form.phone.trim()) return
+    const phone = (phoneInputRef.current?.value || form.phone || '').trim()
+    if (!phone) return
+    setForm(f => ({ ...f, phone }))
     const code = String(Math.floor(100000 + Math.random() * 900000))
     setVerification({ sent: true, code, input: '', ok: false })
-    setBotMessages(prev => [{ id: Date.now(), text: `Código enviado para ${form.phone}: ${code}` }, ...prev])
+    setBotMessages(prev => [{ id: Date.now(), text: `Código enviado para ${phone}: ${code}` }, ...prev])
   }
-  function confirmCode() { setVerification(v => ({ ...v, ok: v.input.trim() === v.code })) }
+  function confirmCode() {
+    const input = (codeInputRef.current?.value || '').trim()
+    setVerification(v => ({ ...v, input, ok: input === v.code }))
+  }
   function finishBooking() {
-    if (!selectedService || !form.time || !form.name.trim() || !form.phone.trim() || !verification.ok) return
+    const clientName = (nameInputRef.current?.value || form.name || '').trim()
+    const phone = (phoneInputRef.current?.value || form.phone || '').trim()
+    if (!selectedService || !form.time || !clientName || !phone) return
+    setForm(f => ({ ...f, name: clientName, phone }))
     const value = selectedService.promo && selectedService.promoPrice ? Number(selectedService.promoPrice) : Number(selectedService.price)
-    const request = { id: Date.now(), date: form.date, time: form.time, client: form.name.trim(), phone: form.phone.trim(), service: selectedService.name, value, status: 'Pendente', source: 'Agendamento pelo site', lastVisit: 'Novo cliente', total: value, frequency: 'Novo' }
-    setAgenda(prev => [...prev, request]); setPrimaryRequest(request); setStep('upsell')
+    const request = { id: Date.now(), date: form.date, time: form.time, client: clientName, phone, service: selectedService.name, value, status: 'Pendente', source: 'Solicitação pelo site', lastVisit: 'Novo cliente', total: value, frequency: 'Novo' }
+    setAgenda(prev => [...prev, request]); setPrimaryRequest(request);
+    setBotMessages(prev => [{ id: Date.now(), text: `Nova solicitação recebida pelo site: ${clientName} quer ${selectedService.name} em ${selectedDay.label} às ${form.time}. Confirmar pelo WhatsApp: ${phone}.` }, ...prev])
+    setStep('upsell')
   }
   function addPromo(s) {
     if (!primaryRequest) return
@@ -178,7 +191,7 @@ export default function TroquimAdmin({ initialScreen = 'cliente' }) {
     setAgenda(prev => prev.map(a => a.id === id ? { ...a, status: 'Recusado', source: 'Cliente avisada pelo bot' } : a))
     if (item) setBotMessages(prev => [{ id: Date.now(), text: `Oi ${item.client}. Esse horário não está disponível. Vamos te chamar para remarcar.` }, ...prev])
   }
-  function resetFlow() { setStep('service'); setForm({ serviceId: '', date: 'd0', time: '', name: '', phone: '' }); setVerification({ sent: false, code: '', input: '', ok: false }); setPrimaryRequest(null) }
+  function resetFlow() { setStep('service'); setForm({ serviceId: '', date: 'd0', time: '', name: '', phone: '' }); setVerification({ sent: false, code: '', input: '', ok: false }); setPrimaryRequest(null); if (nameInputRef.current) nameInputRef.current.value = ''; if (phoneInputRef.current) phoneInputRef.current.value = '' }
 
   const insights = [
     { icon: '📈', title: 'Morenas Iluminadas representa 58% das vendas.', suggestion: 'Destaque este procedimento na página principal.', impact: '+R$ 1.200 em potencial este mês', action: 'Destacar serviço' },
@@ -233,6 +246,14 @@ export default function TroquimAdmin({ initialScreen = 'cliente' }) {
     .reveal{opacity:0;transform:translateY(34px) scale(.985);filter:blur(3px);transition:opacity .75s ease,transform .75s ease,filter .75s ease}.reveal.visible{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}.proof.reveal{transform:translateY(38px) rotateX(10deg) scale(.96)}.proof.reveal.visible{transform:translateY(0) rotateX(0) scale(1)}.countSpin{display:inline-block;min-width:1.15em;transform:rotateX(78deg) translateY(12px);opacity:.25;filter:blur(2px);transition:transform .55s cubic-bezier(.2,.9,.2,1),opacity .55s,filter .55s}.countSpin.spinOn{transform:rotateX(0) translateY(0);opacity:1;filter:blur(0);animation:numberPop .8s ease both}@keyframes numberPop{0%{letter-spacing:-.08em}55%{letter-spacing:.03em}100%{letter-spacing:0}}.bookingBox{position:relative;overflow:hidden;background:linear-gradient(180deg,#fff,#fff8f3);border:1px solid rgba(116,70,51,.14);box-shadow:0 30px 80px rgba(63,34,24,.09)}.bookingBox:before{content:'';position:absolute;inset:auto -20% -35% -20%;height:220px;background:radial-gradient(circle,rgba(186,129,100,.16),transparent 64%);pointer-events:none}.bookingProgress{height:8px;background:#f0ded2;border-radius:999px;overflow:hidden;margin:22px 0 18px}.bookingProgress span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2d1712,#ba8164);transition:width .45s ease}.bookingSummary{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.summaryPill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 12px;color:var(--brown);font-size:12px;font-weight:900}.input{font-size:16px;-webkit-user-select:text;user-select:text;touch-action:manipulation}.input:focus{border-color:#ba8164;box-shadow:0 0 0 4px rgba(186,129,100,.14);outline:none}.stepChip{transition:.25s}.stepChip.active{transform:translateY(-1px);box-shadow:0 10px 22px rgba(80,43,31,.12)}.slotsGrid,.daysGrid,.optionGrid{position:relative;z-index:1}.slotBtn,.dayBtn,.option{transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}.slotBtn:not(:disabled):hover,.dayBtn:hover,.option:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(65,35,25,.1)}@media(max-width:640px){.bookingBox{padding:22px 16px;border-radius:28px}.stepper{overflow:auto;display:flex;flex-wrap:nowrap;padding-bottom:6px}.stepChip{flex:0 0 auto}.formGrid{gap:12px}.input,.primaryBtn,.ghostBtn{width:100%;min-height:48px}.heroStats .miniProof{flex:1 1 130px}.phoneMockup{height:600px}.phoneShowcase{min-height:620px}.proof strong{font-size:30px}}
 
 .phoneSlides{animation-duration:42s}.phoneSlide img{image-rendering:auto;backface-visibility:hidden}.motionStrip.photosOnly{padding:28px 0;background:linear-gradient(90deg,#fff8f3,#fff,#fff8f3)}.premiumPhotos{animation-duration:48s}.premiumPhotos .motionPhoto{height:310px;width:230px;border-radius:34px;box-shadow:0 20px 60px rgba(64,35,24,.16);overflow:hidden;background:#fff}.premiumPhotos .motionPhoto img{width:100%;height:100%;object-fit:cover;transform:scale(1.02)}.premiumGallery.galleryGrid{grid-template-columns:1.25fr 1fr 1fr;align-items:stretch}.premiumGallery .galleryItem{min-height:330px}.premiumGallery .galleryItem.big{grid-row:span 2;min-height:690px}.reelsRow{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 2px 22px}.reelCard{flex:0 0 240px;height:430px;border-radius:32px;overflow:hidden;background:#1f120f;box-shadow:0 24px 70px rgba(64,35,24,.18);scroll-snap-align:start}.reelCard video{width:100%;height:100%;object-fit:cover;display:block}.galleryItem img,.baCard img,.about img,.footerCta img{image-rendering:auto}.phoneMockup:after{content:'';position:absolute;inset:13px;border-radius:42px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);pointer-events:none}@media(max-width:760px){.premiumGallery.galleryGrid{grid-template-columns:1fr}.premiumGallery .galleryItem.big{grid-row:auto;min-height:430px}.premiumGallery .galleryItem{min-height:360px}.reelCard{flex-basis:72vw;height:520px}.premiumPhotos .motionPhoto{width:190px;height:270px}.phoneMockup{height:620px}.phoneSlide{width:min(364px,calc(86vw - 26px))}}
+
+/* Ajustes finais v39 */
+a,.primaryBtn,.ghostBtn,.pill,.lightGoldBtn,.subtleLink,.footerLight a{text-decoration:none!important}
+.about{align-items:start;overflow:hidden;max-width:100%}.about>*{min-width:0}.about h2{max-width:100%;overflow-wrap:break-word}.about .lead{max-width:100%}.trustGrid{grid-template-columns:repeat(3,minmax(0,1fr));overflow:hidden}.trust{min-width:0}
+.locationBlock{padding:76px 0}.locationGrid{align-items:start}.locationInfo{margin:18px 0}.locationMap{height:320px}.locationBlock .ctaRow{margin-top:10px}.locationBlock .primaryBtn,.locationBlock .ghostBtn{display:inline-flex;align-items:center;justify-content:center}
+.bookingBox{max-width:980px;margin-left:auto;margin-right:auto}.input{font-size:16px}
+@media(max-width:860px){.container{width:min(100% - 32px,1120px)}.about{display:block;padding:18px;border-radius:30px}.about>img{width:100%;height:auto;max-height:520px;object-fit:cover;margin-bottom:24px}.about h2{font-size:clamp(36px,11vw,56px);line-height:.95}.about .lead{font-size:18px;line-height:1.55}.trustGrid{display:grid;grid-template-columns:repeat(3,minmax(160px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}.trust{scroll-snap-align:start}.locationBlock{padding:54px 0}.locationGrid{grid-template-columns:1fr;gap:26px}.locationTitle{font-size:clamp(38px,12vw,58px)}.locationMap{height:280px}.locationBlock .ctaRow{display:grid;grid-template-columns:1fr;gap:12px}.locationBlock .primaryBtn,.locationBlock .ghostBtn{width:100%;min-height:58px}.footerLightGrid{grid-template-columns:1fr}.footerLightBottom{display:block}}
+
 `
 
   function Booking() {
@@ -244,9 +265,9 @@ export default function TroquimAdmin({ initialScreen = 'cliente' }) {
       {step==='service' && <><h3>Escolha o procedimento</h3><div className="optionGrid">{services.map(s => <button key={s.id} className={`option ${form.serviceId===String(s.id)?'active':''}`} onClick={()=>{setForm(f=>({...f,serviceId:String(s.id)})); setStep('date')}}><strong>{s.name}</strong><p className="muted small">{s.desc}</p><b>{s.price ? money(s.price) : 'Gratuito'}</b></button>)}</div></>}
       {step==='date' && <><h3>Escolha uma data</h3><div className="daysGrid">{days.map(d => <button key={d.id} className={`dayBtn ${form.date===d.id?'active':''}`} onClick={()=>setForm(f=>({...f,date:d.id,time:''}))}><span>{d.week}</span><br/><strong>{d.day}</strong></button>)}</div><div className="ctaRow"><button className="ghostBtn" onClick={()=>setStep('service')}>Voltar</button><button className="primaryBtn" onClick={()=>setStep('time')}>Escolher horário</button></div></>}
       {step==='time' && <><h3>Horários disponíveis em {selectedDay.label}</h3><div className="slotsGrid">{slots.map(t => <button key={t} disabled={booked.includes(t)} className={`slotBtn ${form.time===t?'active':''}`} onClick={()=>setForm(f=>({...f,time:t}))}>{t}</button>)}</div><div className="ctaRow"><button className="ghostBtn" onClick={()=>setStep('date')}>Voltar</button><button className="primaryBtn" disabled={!form.time} onClick={()=>setStep('login')}>Continuar</button></div></>}
-      {step==='login' && <><h3>Entre para concluir</h3><p className="muted">Suas escolhas foram guardadas: {selectedService?.name} · {selectedDay.label} · {form.time}</p><div className="formGrid"><input className="input" name="clientName" autoComplete="name" placeholder="Seu nome" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/><input className="input" name="whatsapp" autoComplete="tel" inputMode="tel" placeholder="WhatsApp" value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/><button className="ghostBtn" onClick={sendCode}>Enviar código no WhatsApp</button>{verification.sent && <><input className="input" name="verificationCode" inputMode="numeric" autoComplete="one-time-code" placeholder="Digite o código" value={verification.input} onChange={e=>setVerification(v=>({...v,input:e.target.value}))}/><button className="ghostBtn" onClick={confirmCode}>Verificar código</button></>} {verification.ok && <button className="primaryBtn" onClick={finishBooking}>Concluir agendamento</button>}</div></>}
+      {step==='login' && <><h3>Concluir solicitação</h3><p className="muted">Suas escolhas foram guardadas: {selectedService?.name} · {selectedDay.label} · {form.time}. O salão entra em contato pelo WhatsApp para confirmar o horário.</p><div className="formGrid"><input ref={nameInputRef} className="input" name="clientName" autoComplete="name" placeholder="Seu nome" defaultValue={form.name}/><input ref={phoneInputRef} className="input" name="whatsapp" autoComplete="tel" inputMode="tel" placeholder="WhatsApp" defaultValue={form.phone}/><button type="button" className="primaryBtn" onClick={finishBooking}>Enviar solicitação</button></div></>}
       {step==='upsell' && <><h3>Agendamento recebido ✨</h3><p className="muted">Agora aproveite uma condição especial para completar sua experiência.</p>{promos.map(s => <div className="promoCard" key={s.id}><p className="eyebrow">Oferta complementar</p><h3>{s.name}</h3><p className="muted">{s.desc}</p><span className="old">{money(s.price)}</span><div className="new">{money(s.promoPrice)}</div><button className="primaryBtn" onClick={()=>addPromo(s)}>Adicionar ao meu agendamento</button></div>)}<button className="ghostBtn" onClick={()=>setStep('success')}>Não agora</button></>}
-      {step==='success' && <><h3>Pronto, {primaryRequest?.client || form.name}! 🎉</h3><p className="muted">Seu agendamento foi enviado. A confirmação chegará pelo WhatsApp.</p><button className="primaryBtn" onClick={resetFlow}>Fazer novo agendamento</button></>}
+      {step==='success' && <><h3>Pronto, {primaryRequest?.client || form.name}! 🎉</h3><p className="muted">Sua solicitação foi enviada. O Studio Malu Mota entrará em contato pelo WhatsApp para confirmar o horário.</p><button className="primaryBtn" onClick={resetFlow}>Fazer novo agendamento</button></>}
     </div></section>
   }
 
@@ -265,7 +286,7 @@ export default function TroquimAdmin({ initialScreen = 'cliente' }) {
           <section className="bookingPageHero container">
             <p className="eyebrow">Agendamento online</p>
             <h1>Escolha sua avaliação com calma.</h1>
-            <p className="lead" style={{margin:'0 auto'}}>O agendamento acontece em etapas simples. O WhatsApp fica apenas para dúvidas e confirmação.</p>
+            <p className="lead" style={{margin:'0 auto'}}>A cliente escolhe serviço, data e horário. Depois o salão confirma tudo pelo WhatsApp.</p>
           </section>
           {Booking()}
         </main>

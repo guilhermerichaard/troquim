@@ -1,43 +1,36 @@
-# Troquim
+# Troquim — site público
 
-Prototipo do app de manutencao de celulares (Troquim) e do painel administrativo (Troquim Negocios).
+Landing B2B do Troquim.
 
-## Stack
+O produto é um copiloto operacional para negócios de serviço: atendimento no WhatsApp, agenda e automações ligadas à operação real. Este repositório contém somente a experiência pública de marketing.
 
-- React 18
-- Vite 5
-- Estilos inline (sem Tailwind / sem bibliotecas de UI externas)
+## Separação de responsabilidades
 
-## Estrutura
+- `troquim.app`: site público e posicionamento comercial.
+- `painel.troquim.app`: produto autenticado do dono.
+- `guilhermerichaard/troquim-bot`: backend, domínio, integrações e console real.
 
-```
-troquim-app/
-├── index.html
-├── package.json
-├── vite.config.js
-└── src/
-    ├── main.jsx        # ponto de entrada
-    ├── App.jsx         # alterna entre App Cliente e Painel Admin
-    ├── index.css       # reset global minimo
-    ├── Troquim.jsx      # app do cliente (responsivo: mobile + desktop)
-    └── TroquimAdmin.jsx # painel da assistencia (pedidos, precos, avaliacoes)
-```
+A landing não replica regras de agenda, catálogo, clientes ou faturamento.
 
-## Como rodar
+## Princípios
+
+- sem dados comerciais fictícios;
+- sem métricas de ROI inventadas;
+- sem painel mock apresentado como produto real;
+- IA não é a proposta principal de valor;
+- foco em atendimento, agenda, recuperação de oportunidades e tempo devolvido.
+
+## Desenvolvimento
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Abra o endereco mostrado no terminal (normalmente http://localhost:5173).
+## Validação
 
-## Status atual
+```bash
+npm run build
+```
 
-Isso e um prototipo de frontend com dados fixos (mock). Para virar um produto real ainda falta:
-
-- Backend / banco de dados (ex: Supabase, Node + PostgreSQL)
-- Autenticacao real
-- Integracao com Google Maps API
-- Pagamentos (Stripe / Mercado Pago)
-- Notificacoes push reais
+O CI executa instalação limpa e build a cada pull request para `main`.

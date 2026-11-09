@@ -1,7 +1,5 @@
-import TroquimAdmin from './TroquimAdmin.jsx'
+import PremiumLanding from './PremiumLanding.jsx'
 
 export default function App() {
-  const path = window.location.pathname
-  const initialScreen = path.includes('admin') ? 'admin' : path.includes('agendar') ? 'agendar' : 'cliente'
-  return <TroquimAdmin initialScreen={initialScreen} />
+  return <PremiumLanding />
 }

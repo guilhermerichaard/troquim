@@ -123,7 +123,7 @@ export default function PremiumLanding() {
               enquanto sua equipe continua focada no serviço.
             </p>
             <div className="heroActions">
-              <a className="primaryCta" href="#demonstracao">Solicitar uma apresentação</a>
+              <a className="primaryCta" href="mailto:contato@troquim.app?subject=Quero%20conhecer%20o%20Troquim">Solicitar uma apresentação</a>
               <a className="textCta" href="#produto">Ver o produto <span>↘</span></a>
             </div>
             <div className="heroNote">
@@ -263,9 +263,9 @@ export default function PremiumLanding() {
               </p>
             </div>
             <div className="demoActions">
-              <a className="primaryCta lightButton" href="#top">Quero conhecer o Troquim</a>
+              <a className="primaryCta lightButton" href="mailto:contato@troquim.app?subject=Quero%20conhecer%20o%20Troquim">Quero conhecer o Troquim</a>
               <a className="demoLogin" href="https://painel.troquim.app">Já sou cliente →</a>
-              <small>Canal comercial será conectado aqui na implantação da landing.</small>
+              <small>Apresentações e implantação: contato@troquim.app</small>
             </div>
           </div>
         </section>
